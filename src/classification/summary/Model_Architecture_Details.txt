@@ -1,0 +1,244 @@
+Warning: torchsummary not available. Install with: pip install torchsummary
+
+================================================================================
+  LITEFORMER 2D: COMPREHENSIVE MODEL ANALYSIS
+  Total Models: 5 (Variants A, B, C, D, E)
+================================================================================
+
+NOTE: Variants B, C, and D now use a DUAL-BRANCH multi-resolution fusion design:
+  - Branch 1: Original image -> PatchEmbedding2D -> StagedLiteFormerBackbone (3 stages).
+  - Branch 2: Preprocess (B: CWCL, C: CWMS-GAN, D: HaarDWT) -> AuxDownsamplePath.
+  - Fusion at each stage: concat + 1x1 conv (no attention). See docs/MODEL_FLOWCHART.md
+    and summary/VARIANT_B_EXPLAINED.md, VARIANT_C_EXPLAINED.md, VARIANT_D_EXPLAINED.md.
+  Parameter counts and structure below may differ; re-run your analysis script to refresh.
+
+================================================================================
+
+[1/5] Creating Variant A (Base)...
+
+================================================================================
+  MODEL: LiteFormer2D_Base
+  VARIANT: A
+================================================================================
+  Total Parameters:           257,099
+  Trainable Parameters:       257,099
+  Model Size:                    0.98 MB
+  Input Shape:                 (1, 1, 32, 32)
+  Output Shape:                       (1, 10)
+
+  Architecture Details:
+    - Standard LiteFormer blocks with depthwise convolution
+    - Patch embedding: 4x4 patches, stride 4
+    - 7 LiteFormer blocks
+    - Sequence pooling + MLP head
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+  DETAILED ARCHITECTURE
+────────────────────────────────────────────────────────────────────────────────
+  Install torchsummary or torchinfo for detailed architecture:
+  pip install torchsummary  OR  pip install torchinfo
+
+  Basic Model Structure:
+LiteFormer2D_Base(
+  (patch_embed): PatchEmbedding2D(
+    (proj): Conv2d(1, 64, kernel_size=(4, 4), stride=(4, 4), bias=False)
+  )
+  (blocks): ModuleList(
+    (0-6): 7 x LiteFormerBlock2D(
+      (dconv): Conv2d(64, 64, kernel_size=(7, 7), stride=(1, 1), padding=(3, 3), groups=64, bias=False)
+      (norm1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (norm2): LayerNorm((64,), eps=1e-05, elementwise_affine=True)
+      (ffn): Sequential(
+        (0): Linear(in_features=64, out_features=256, bias=True)
+        (1): ReLU()
+        (2): Linear(in_features=256, out_features=64, bias=True)
+        (3): Dropout(p=0.2, inplace=False)
+      )
+    )
+  )
+  (sequence_pool): SequencePooling2D(
+    (pool_weights): Linear(in_features=64, out_features=1, bias=True)
+  )
+  (mlp_head): MLPHead(
+    (head): Linear(in_features=64, out_features=10, bias=True)
+  )
+)
+────────────────────────────────────────────────────────────────────────────────
+
+================================================================================
+
+
+[2/5] Creating Variant B (CWCL)...
+
+================================================================================
+  MODEL: LiteFormer2D_CWCL
+  VARIANT: B (dual-branch)
+================================================================================
+  Parameter count: config-dependent (embed_dim, num_blocks, num_fusion_stages).
+  Run: python3 models.py  or  sum(p.numel() for p in model.parameters())
+
+  Architecture (dual-branch):
+    - Branch 1: Raw image -> PatchEmbedding2D(1->embed_dim) -> StagedLiteFormerBackbone
+      (3 stages: blocks + downsample; fusion at start of each stage).
+    - Branch 2: CWCL (Gabor x3 -> 64ch) -> AuxDownsamplePath -> 3 feature maps at
+      (H/4,W/4), (H/8,W/8), (H/16,W/16).
+    - ConcatFusion at each stage (concat + 1x1 conv, no attention).
+  See docs/MODEL_FLOWCHART.md and summary/VARIANT_B_EXPLAINED.md.
+================================================================================
+
+================================================================================
+
+
+[3/5] Creating Variant C (CWMS-GAN)...
+
+================================================================================
+  MODEL: LiteFormer2D_CWMS_GAN
+  VARIANT: C (dual-branch)
+================================================================================
+  Parameter count: config-dependent. Run models.py or count_parameters(model).
+
+  Architecture (dual-branch):
+    - Branch 1: Raw image -> PatchEmbedding2D -> StagedLiteFormerBackbone (3 stages).
+    - Branch 2: CWMS-GAN (MultiScale x2, 1x1) -> AuxDownsamplePath -> 3 feature maps.
+    - ConcatFusion at each stage (concat + 1x1 conv, no attention).
+  See docs/MODEL_FLOWCHART.md and summary/VARIANT_C_EXPLAINED.md.
+================================================================================
+
+================================================================================
+
+
+[4/5] Creating Variant D (DWT)...
+
+================================================================================
+  MODEL: LiteFormer2D_DWT
+  VARIANT: D (dual-branch)
+================================================================================
+  Parameter count: config-dependent. Run models.py or count_parameters(model).
+
+  Architecture (dual-branch):
+    - Branch 1: Raw image -> PatchEmbedding2D -> StagedLiteFormerBackbone (3 stages).
+    - Branch 2: HaarDWT2D -> [B,4,H/2,W/2] -> AuxDownsamplePath(4ch) -> 3 feature maps.
+    - ConcatFusion at each stage (concat + 1x1 conv, no attention).
+  See docs/MODEL_FLOWCHART.md and summary/VARIANT_D_EXPLAINED.md.
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+  (Detailed printouts for B/C/D removed; structure is dual-branch as above.)
+────────────────────────────────────────────────────────────────────────────────
+
+================================================================================
+
+
+[5/5] Creating Variant E (CWT-LiteFormer Fusion)...
+
+================================================================================
+  MODEL: LiteFormer2D_Fusion
+  VARIANT: E
+================================================================================
+  Total Parameters:           286,090
+  Trainable Parameters:       286,090
+  Model Size:                    1.10 MB
+  Input Shape:                 (1, 1, 32, 32)
+  Output Shape:                       (1, 10)
+  Attention Maps:                   7
+
+  Architecture Details:
+    - Dual-stream architecture:
+      * CNN Branch: Multi-scale dilated convolutions
+      * Transformer Branch: LiteFormer blocks
+    - Cross-modal attention fusion
+    - Attention consistency loss (fault-specific + temporal + cross-scale)
+    - Global pooling + classification head
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+  DETAILED ARCHITECTURE
+────────────────────────────────────────────────────────────────────────────────
+  Install torchsummary or torchinfo for detailed architecture:
+  pip install torchsummary  OR  pip install torchinfo
+
+  Basic Model Structure:
+CWTLiteFormerFusion(
+  (cnn_branch): CNNBranch(
+    (stages): ModuleList(
+      (0): Sequential(
+        (0): Conv2d(1, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (1): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1))
+        (2): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (3): ReLU(inplace=True)
+        (4): Dropout2d(p=0.1, inplace=False)
+      )
+      (1): Sequential(
+        (0): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2), dilation=(2, 2), groups=64)
+        (1): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1))
+        (2): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (3): ReLU(inplace=True)
+        (4): Dropout2d(p=0.1, inplace=False)
+      )
+      (2): Sequential(
+        (0): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(4, 4), dilation=(4, 4), groups=64)
+        (1): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1))
+        (2): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (3): ReLU(inplace=True)
+        (4): Dropout2d(p=0.1, inplace=False)
+      )
+    )
+    (feature_proj): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1))
+  )
+  (transformer_branch): TransformerBranch(
+    (patch_embed): Conv2d(1, 64, kernel_size=(4, 4), stride=(4, 4), bias=False)
+    (blocks): ModuleList(
+      (0-6): 7 x LiteFormerBlock(
+        (dconv): Conv2d(64, 64, kernel_size=(7, 7), stride=(1, 1), padding=(3, 3), groups=64, bias=False)
+        (norm1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (norm2): LayerNorm((64,), eps=1e-05, elementwise_affine=True)
+        (ffn): Sequential(
+          (0): Linear(in_features=64, out_features=256, bias=True)
+          (1): ReLU()
+          (2): Dropout(p=0.2, inplace=False)
+          (3): Linear(in_features=256, out_features=64, bias=True)
+          (4): Dropout(p=0.2, inplace=False)
+        )
+      )
+    )
+  )
+  (fusion_module): CrossModalFusion(
+    (q_proj): Conv2d(64, 32, kernel_size=(1, 1), stride=(1, 1))
+    (kv_proj): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1))
+    (out_proj): Conv2d(32, 64, kernel_size=(1, 1), stride=(1, 1))
+  )
+  (global_pool): AdaptiveAvgPool2d(output_size=1)
+  (classifier): Sequential(
+    (0): Flatten(start_dim=1, end_dim=-1)
+    (1): Linear(in_features=64, out_features=32, bias=True)
+    (2): ReLU()
+    (3): Dropout(p=0.2, inplace=False)
+    (4): Linear(in_features=32, out_features=10, bias=True)
+  )
+  (attention_loss): AttentionConsistencyLoss()
+)
+────────────────────────────────────────────────────────────────────────────────
+
+================================================================================
+
+
+========================================================================================================================
+  MODEL COMPARISON TABLE
+========================================================================================================================
+Model                          Variant    Parameters      Size (MB)    Complexity
+------------------------------------------------------------------------------------------------------------------------
+LiteFormer2D_Base              A                257,099        0.98  Low
+LiteFormer2D_CWCL              B              (see note)        —    Medium
+LiteFormer2D_CWMS_GAN          C              (see note)        —    High
+LiteFormer2D_DWT               D              (see note)        —    Low
+LiteFormer2D_Fusion            E                286,090        1.10  Medium
+========================================================================================================================
+Note: Variants B, C, D use the dual-branch design. Parameter counts depend on embed_dim, num_blocks, num_fusion_stages.
+Run: python3 models.py  to print current counts for your config.
+
+Statistics (A, E from above; B/C/D run your script):
+  Total Parameters (all models):         (run script)
+  Average / Smallest / Largest:          (run script)
+========================================================================================================================
+

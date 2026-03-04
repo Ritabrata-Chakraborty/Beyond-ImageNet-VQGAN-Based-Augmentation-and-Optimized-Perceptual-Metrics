@@ -1,0 +1,104 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    VARIANT E: CWT-LITEFORMER FUSION                          ║
+║                    Quick Visual Reference                                    ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+INPUT: CWT Spectrogram [Batch, 1, 32, 32]
+│
+├─────────────────────────────┬──────────────────────────────┐
+│                             │                              │
+│   CNN BRANCH                │   TRANSFORMER BRANCH         │
+│   (Local Patterns)          │   (Global Context)           │
+│                             │                              │
+│   Stage 1: Dilation=1       │   Patch Embed (4×4→8×8)      │
+│   ┌──────────────────┐      │   ┌──────────────────┐       │
+│   │ DepthwiseConv 3×3│      │   │Conv2d 1→64, 4×4  │       │
+│   │ PointwiseConv 1×1│      │   └──────────────────┘       │
+│   │ BatchNorm + ReLU │      │            ↓                 │
+│   │ Dropout(0.1)     │      │   Block 1: LiteFormer        │
+│   └──────────────────┘      │   ┌──────────────────┐       │
+│          ↓                  │   │DepthwiseConv 7×7 │       │
+│   Stage 2: Dilation=2       │   │BatchNorm+Residual│       │
+│   ┌──────────────────┐      │   │LayerNorm         │       │
+│   │ DepthwiseConv 3×3│      │   │FFN: 64→256→64    │       │
+│   │ + Residual       │      │   │Dropout+Residual  │       │
+│   │ PointwiseConv 1×1│      │   └──────────────────┘       │
+│   │ BatchNorm + ReLU │      │            ↓                 │
+│   └──────────────────┘      │   Blocks 2-7: Same           │
+│          ↓                  │   (7 blocks total)           │
+│   Stage 3: Dilation=4       │            ↓                 │
+│   ┌──────────────────┐      │   [B, 64, 8, 8]              │
+│   │ DepthwiseConv 3×3│      │   + 7 Attention Maps         │
+│   │ + Residual       │      │   [B, 1, 32, 32] each        │
+│   │ PointwiseConv 1×1│      │                              │
+│   └──────────────────┘      │                              │
+│          ↓                  │                              │
+│   [B, 64, 32, 32]           │                              │
+│                             │                              │
+└─────────────────────────────┴──────────────────────────────┘
+                              │
+                              ↓
+              ╔═══════════════════════════════╗
+              ║  💫 CROSS-MODAL FUSION        ║
+              ║  (Attention Mechanism)        ║
+              ╠═══════════════════════════════╣
+              ║  1. Upsample Transformer      ║
+              ║     [B,64,8,8] → [B,64,32,32] ║
+              ║                               ║
+              ║  2. Generate Q, K, V:         ║
+              ║     Q ← Transformer (query)   ║
+              ║     K,V ← CNN (key, value)    ║
+              ║                               ║
+              ║  3. Attention:                ║
+              ║     Attn = softmax(Q·K/√d)    ║
+              ║     Out = Attn · V            ║
+              ║                               ║
+              ║  4. Project + Residual        ║
+              ║     [B, 64, 32, 32]           ║
+              ╚═══════════════════════════════╝
+                              │
+                              ↓
+              ┌───────────────────────────────┐
+              │  Global Average Pooling       │
+              │  [B, 64, 32, 32] → [B, 64]    │
+              └───────────────────────────────┘
+                              │
+                              ↓
+              ┌───────────────────────────────┐
+              │  🎯 CLASSIFIER                │
+              │  Linear(64 → 32)              │
+              │  ReLU + Dropout(0.2)          │
+              │  Linear(32 → 10)              │
+              └───────────────────────────────┘
+                              │
+                              ↓
+              OUTPUT: Class Probabilities [B, 10]
+
+
+╔═════════════════════════════════════════════════════════════════════════════╗
+║                        ATTENTION CONSISTENCY LOSS                           ║
+╠═════════════════════════════════════════════════════════════════════════════╣
+║                                                                             ║
+║  Uses the 7 Attention Maps from Transformer Branch:                         ║
+║                                                                             ║
+║  📍 1. Fault-Specific Loss (λ=1.0)                                          ║
+║      ├─ Create frequency mask for fault-relevant bands                      ║
+║      ├─ Measure attention in these regions                                  ║
+║      └─ Encourage focus on lower frequency bands                            ║
+║                                                                             ║
+║  ⏱️ 2. Temporal Consistency Loss (λ=0.5)                                    ║
+║      ├─ Calculate attention differences along time axis                     ║
+║      ├─ Penalize large jumps                                                ║
+║      └─ Ensure smooth attention over time                                   ║
+║                                                                             ║
+║  🔗 3. Cross-Scale Alignment Loss (λ=0.3)                                   ║
+║      ├─ Compare attention across 7 blocks                                   ║
+║      ├─ Minimize L2 distance between consecutive layers                     ║
+║      └─ Ensure consistent focus through network depth                       ║
+║                                                                             ║
+║  Total Attention Loss = 1.0×L_fault + 0.5×L_temp + 0.3×L_scale              ║
+║                                                                             ║
+║  Training Loss = CrossEntropy + attention_weight × Attention_Loss           ║
+║  (attention_weight gradually increases from 0 to 0.5)                       ║
+║                                                                             ║
+╚═════════════════════════════════════════════════════════════════════════════╝

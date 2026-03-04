@@ -1,0 +1,38 @@
+# Beyond ImageNet — single conda env (pip install -r requirements.txt for pip-only)
+name: beyond_imagenet
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - pytorch>=1.8,<2.0
+  - torchvision>=0.9
+  - torchaudio
+  - cudatoolkit=11.6
+  - numpy>=1.19,<2
+  - scipy>=1.6
+  - pillow>=8
+  - pip
+  - pip:
+    - PyYAML>=5.4.0
+    - tqdm>=4.60.0
+    - imageio>=2.9.0
+    - opencv-python-headless>=4.5.0
+    - scikit-image>=0.19.0
+    - pandas>=1.3.0
+    - scikit-learn>=0.24.0
+    - prdc
+    - lpips>=0.1.4
+    - absl-py>=0.1.0
+    - einops>=0.3.0
+    - matplotlib>=3.3.0
+    - seaborn>=0.11.0
+    - wandb>=0.12.0
+    - tensorboard>=2.5.0
+    - jupyter>=1.0.0
+    - ipywidgets>=7.6.0
+    - pytest>=6.0.0
+    - black>=21.0.0
+    - flake8>=3.9.0
+    - mypy>=0.910

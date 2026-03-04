@@ -1,0 +1,5 @@
+# Project paths (relative to repo root when run from root)
+DATA_ROOT: data
+EXTERNAL_DIR: external
+# Optional: absolute project root for scripts that need it
+# PROJECT_ROOT: /home/rog/Code/KUL/Beyond ImageNet

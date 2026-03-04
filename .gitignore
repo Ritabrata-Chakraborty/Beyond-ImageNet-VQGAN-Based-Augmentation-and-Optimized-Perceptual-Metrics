@@ -1,0 +1,69 @@
+# Data: ignore all except cwru_cwt CSV (structure + CSV only)
+data/*
+!data/cwru_cwt/
+data/cwru_cwt/*
+!data/cwru_cwt/**/*.csv
+
+# Experiments: keep structure and scripts; ignore checkpoints, plots, CSVs
+experiments/**/checkpoints/
+experiments/**/*.csv
+experiments/**/plots/
+experiments/**/*.png
+experiments/**/*.pdf
+experiments/**/*.pth
+experiments/**/*.pt
+experiments/generative/
+experiments/classification/
+experiments/perceptual/checkpoints/
+
+# Docs and compiled readmes
+docs/
+COMPILED_READMES.md
+
+# Keep scripts and small configs under experiments
+!experiments/**/*.sh
+!experiments/**/*.md
+!experiments/**/*.yml
+!experiments/**/*.yaml
+
+# Root-level checkpoints and runs
+checkpoints/
+*.pth
+*.pt
+
+# W&B
+wandb/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+.venv_cmmd/
+env/
+*.egg-info/
+*.egg
+dist/
+build/
+eggs/
+*.manifest
+
+# Caches and tooling
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# IDE / OS
+.cursor/
+.idea/
+.vscode/
+.DS_Store
+*.swp
+*.swo
+*~

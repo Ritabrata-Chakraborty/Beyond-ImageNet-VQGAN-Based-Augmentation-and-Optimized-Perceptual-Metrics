@@ -1,0 +1,101 @@
+# VQGAN (VQ mode). Codebook reinit; transformer phase after. Default VGG perceptual (external/perceptual_similarity).
+
+mode:
+  vq: true
+
+data:
+  dataset_name: cwru
+  dataset_path: "data/cwru_cwt"
+  batch_size: 27
+  image_size: 256
+  num_workers: 4
+
+training:
+  epochs: 250
+  train_transformer: true
+  transformer_epochs: 250
+  device: cuda
+  seed: 42
+  experiment_dir: experiments/generative/vqgan
+
+architecture:
+  vae_vqgan:
+    img_channels: 1
+    img_size: 256
+    latent_channels: 256
+    latent_size: 16
+    intermediate_channels: [128, 128, 256, 256, 512]
+    num_residual_blocks_encoder: 2
+    num_residual_blocks_decoder: 3
+    dropout: 0.0
+    attention_resolution: [16]
+    num_codebook_vectors: 1024
+    codebook_ema: true
+    codebook_ema_decay: 0.99
+    codebook_ema_epsilon: 1.0e-5
+    num_classes: 9
+
+  transformer:
+    sos_token: 0
+    pkeep: 0.5
+    block_size: 512
+    n_layer: 12
+    n_head: 16
+    n_embd: 1024
+
+trainer:
+  vae_vqgan:
+    optimizer: adamw
+    learning_rate: 2.25e-5
+    beta1: 0.5
+    beta2: 0.9
+    weight_decay: 0.01
+    scheduler: cosine
+    scheduler_T_0: 250
+    scheduler_T_mult: 2
+    scheduler_eta_min: 2.25e-8
+    perceptual_loss_factor: 1.0
+    rec_loss_factor: 1.0
+    disc_factor: 1.0
+    disc_start: 500
+    kl_factor: 0.001
+    kl_start: 1500
+    perceptual_model: vgg
+    codebook_reset_steps: 2500
+    codebook_usage_threshold: 0.01
+    use_amp: false
+    grad_clip_norm: 1.0
+    disc_label_smooth_real: 0.9
+    disc_label_smooth_fake: -0.9
+    disc_lr_factor: 2.0
+    r1_gamma: 0
+    disc_ramp_steps: 0
+    disc_n_layers: 4
+
+  transformer:
+    optimizer: adamw
+    learning_rate: 4.5e-6
+    beta1: 0.9
+    beta2: 0.95
+    weight_decay: 0.01
+    scheduler: cosine
+    scheduler_T_0: 250
+    scheduler_T_mult: 2
+    scheduler_eta_min: 4.5e-9
+    transformer_diversity_weight: 0.05
+    transformer_label_smoothing: 0.1
+
+classifier:
+  enabled: true
+  balanced: true
+  num_classes: 9
+  class_display_order: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+  loss_weight: 1.0
+  dropout: 0.3
+
+logging:
+  wandb_project: "VQGAN+VAEGAN"
+  image_log_every_n_steps: 10
+  print_every_n_steps: 2
+  save_every_n_epochs: 10
+  n_display_images: 9

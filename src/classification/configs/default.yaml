@@ -1,0 +1,65 @@
+# LiteFormer2D default configuration
+# Usage: run.py loads this by default (or use --config path). Per-variant overrides under variants.<A|B|C|D|E>.
+# CLI arguments (--dropout, --lr, etc.) override these values when provided.
+
+default:
+  # Model (shared defaults; variant-specific below)
+  in_channels: 1
+  embed_dim: 32
+  patch_size: 4
+  stride: 4
+  num_blocks: 4
+  kernel_size: 7
+  ffn_ratio: 2
+  dropout: 0.2
+  head_dropout: null   # null = use dropout value
+  num_fusion_stages: 3
+  aux_dropout: 0.0
+  cnn_dropout: 0.1
+  # Training
+  lr: 1.0e-4
+  weight_decay: 1.0e-2
+  epochs: 100
+
+variants:
+  A:
+    embed_dim: 64
+    num_blocks: 7
+    ffn_ratio: 4
+    dropout: 0.2
+    head_dropout: null
+
+  B:
+    embed_dim: 64
+    num_blocks: 7
+    ffn_ratio: 4
+    dropout: 0.2
+    head_dropout: null
+    num_fusion_stages: 3
+    aux_dropout: 0.0
+
+  C:
+    embed_dim: 64
+    num_blocks: 7
+    ffn_ratio: 4
+    dropout: 0.2
+    head_dropout: null
+    num_fusion_stages: 3
+    aux_dropout: 0.0
+
+  D:
+    embed_dim: 64
+    num_blocks: 7
+    ffn_ratio: 4
+    dropout: 0.2
+    head_dropout: null
+    num_fusion_stages: 3
+    aux_dropout: 0.0
+
+  E:
+    embed_dim: 64
+    num_blocks: 7
+    ffn_ratio: 4
+    dropout: 0.2
+    head_dropout: null
+    cnn_dropout: 0.1
