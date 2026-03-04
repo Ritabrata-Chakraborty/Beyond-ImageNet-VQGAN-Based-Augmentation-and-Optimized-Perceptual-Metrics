@@ -1,8 +1,8 @@
-# Data: ignore all except cwru_cwt CSV (structure + CSV only)
+# Data: ignore all except cwru CSVs
 data/*
-!data/cwru_cwt/
-data/cwru_cwt/*
-!data/cwru_cwt/**/*.csv
+!data/cwru/
+data/cwru/*
+!data/cwru/**/*.csv
 
 # Experiments: keep structure and scripts; ignore checkpoints, plots, CSVs
 experiments/**/checkpoints/
