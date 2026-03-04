@@ -1,13 +1,18 @@
-# Data: ignore all except cwru and cwru_cwt CSVs (structure + CSV only)
+# Data: ignore all except specific CWRU DE_48K_1796 CSVs (see list below)
 data/*
 !data/cwru/
-data/cwru/**/*
-!data/cwru/.gitkeep
-!data/cwru/**/*.csv
-!data/cwru_cwt/
-data/cwru_cwt/**/*
-!data/cwru_cwt/.gitkeep
-!data/cwru_cwt/**/*.csv
+!data/cwru/DE_48K_1796/
+data/cwru/DE_48K_1796/*
+!data/cwru/DE_48K_1796/B_007.csv
+!data/cwru/DE_48K_1796/B_014.csv
+!data/cwru/DE_48K_1796/B_021.csv
+!data/cwru/DE_48K_1796/IR_007.csv
+!data/cwru/DE_48K_1796/IR_014.csv
+!data/cwru/DE_48K_1796/IR_021.csv
+!data/cwru/DE_48K_1796/N.csv
+!data/cwru/DE_48K_1796/OR_007_@6.csv
+!data/cwru/DE_48K_1796/OR_014_@6.csv
+!data/cwru/DE_48K_1796/OR_021_@6.csv
 
 # Experiments: keep 4 subdirs for structure; ignore checkpoints, plots, CSVs
 experiments/**/checkpoints/
