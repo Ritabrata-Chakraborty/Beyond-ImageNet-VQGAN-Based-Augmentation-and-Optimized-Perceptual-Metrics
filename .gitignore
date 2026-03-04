@@ -1,10 +1,13 @@
-# Data: ignore all except cwru CSVs
+# Data: ignore all except cwru and cwru_cwt CSVs (structure + CSV only)
 data/*
 !data/cwru/
 data/cwru/*
 !data/cwru/**/*.csv
+!data/cwru_cwt/
+data/cwru_cwt/*
+!data/cwru_cwt/**/*.csv
 
-# Experiments: keep structure and scripts; ignore checkpoints, plots, CSVs
+# Experiments: keep 4 subdirs for structure; ignore checkpoints, plots, CSVs
 experiments/**/checkpoints/
 experiments/**/*.csv
 experiments/**/plots/
@@ -15,6 +18,10 @@ experiments/**/*.pt
 experiments/generative/
 experiments/classification/
 experiments/perceptual/checkpoints/
+!experiments/classification/.gitkeep
+!experiments/generative/.gitkeep
+!experiments/perceptual/.gitkeep
+!experiments/evaluation/.gitkeep
 
 # Docs and compiled readmes
 docs/
